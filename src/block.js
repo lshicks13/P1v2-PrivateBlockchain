@@ -16,7 +16,7 @@ class Block {
 
     // Constructor - argument data will be the object containing the transaction data
 	constructor(data){
-		this.hash = '';                                           // Hash of the block
+		this.hash = null;                                           // Hash of the block
 		this.height = 0;                                            // Block Height (consecutive number of each block)
 		this.body = Buffer(JSON.stringify(data)).toString('hex');   // Will contain the transactions stored in the block, by default it will encode the data
 		this.time = 0;                                              // Timestamp for the Block creation
@@ -89,11 +89,11 @@ class Block {
                 if (self.height > 0){    
                     //return data;
                     let data = JSON.parse(hex2ascii(self.body));
-                    console.log(data);
+                    //console.log(data);
                     //console.log("this is not the Genesis block");
-                    resolve(true);
+                    resolve(data);
                 } else {
-                    console.log("this is the Genesis block")
+                    //console.log("this is the Genesis block")
                     resolve(false)
                 }
             } catch(error) {
@@ -107,10 +107,10 @@ class Block {
 
 module.exports.Block = Block;                    // Exposing the Block class as a module
 
-/*b = new Block("some rando data");
-c = new Block("some more rando data");
-c.height = 4;
-console.log(c);
+//b = new Block("some rando data");
+//c = new Block("some more rando data");
+//c.height = 4;
+//console.log(c);
 //b.validate().then((res) => {console.log(res)}).catch((err) => {console.log(err)});
-c.validate().then((res) => {console.log(res)}).catch((err) => {console.log(err)});
-c.getBData();*/
+//c.validate().then((res) => {console.log(res)}).catch((err) => {console.log(err)});
+//c.getBData().then((res) => {console.log(res)}).catch((err) => {console.log(err)});;

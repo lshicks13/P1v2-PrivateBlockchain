@@ -11,13 +11,14 @@
 const SHA256 = require('crypto-js/sha256');
 const BlockClass = require('./block.js');
 const bitcoinMessage = require('bitcoinjs-message');
+const hex2ascii = require('hex2ascii');
 
 class Blockchain {
 
     /**
      * Constructor of the class, you will need to setup your chain array and the height
      * of your chain (the length of your chain array).
-     * Also everytime you create a Blockchain class you will need to initialized the chain creating
+     * Also everytime you create a Blockchain class you will need to initialize the chain by creating
      * the Genesis Block.
      * The methods in this class will always return a Promise to allow client applications or
      * other backends to call asynchronous functions.
@@ -63,8 +64,27 @@ class Blockchain {
      */
     _addBlock(block) {
         let self = this;
+        //console.log(this);
         return new Promise(async (resolve, reject) => {
-           
+            try {
+                //console.log(block);
+                // Block height
+                block.height = this.chain.length;
+                // UTC timestamp
+                block.time = new Date().getTime().toString().slice(0,-3);
+                // previous block hash
+                if(this.chain.length>0){
+                block.previousBlockHash = this.chain[this.chain.length-1].hash;
+                }
+                // Block hash with SHA256 using block and converting to a string
+                block.hash = SHA256(JSON.stringify(block)).toString();
+                // Adding block object to chain
+                self.chain.push(block);
+                this.height = self.height + 1;
+                resolve(block);
+            } catch(error) {
+                reject(error);
+            }
         });
     }
 
@@ -74,11 +94,12 @@ class Blockchain {
      * sign it with your Bitcoin Wallet (Electrum or Bitcoin Core)
      * This is the first step before submit your Block.
      * The method return a Promise that will resolve with the message to be signed
+     * //<WALLET_ADDRESS>:${new Date().getTime().toString().slice(0,-3)}:starRegistry
      * @param {*} address 
      */
     requestMessageOwnershipVerification(address) {
         return new Promise((resolve) => {
-            
+                resolve('<' + address + '>:${' + new Date().getTime().toString().slice(0,-3) + '}:starRegistry');
         });
     }
 
@@ -102,7 +123,22 @@ class Blockchain {
     submitStar(address, message, signature, star) {
         let self = this;
         return new Promise(async (resolve, reject) => {
-            
+            try{
+                let mTime = parseInt(message.split(':')[1]);
+                let cTime = parseInt(new Date().getTime().toString().slice(0, -3));
+                resolve(this._addBlock(new BlockClass.Block(message)))
+                //console.log(mTime);
+                //console.log(cTime-mTime);
+                /*if (cTime - mTime < 10000){
+                     let verified = bitcoinMessage.verify(message, address, signature);
+                     //console.log(verified)
+                     if (verified == true){
+                        resolve(this._addBlock(new BlockClass.Block(message)));
+                     }
+                }*/
+            } catch(error){
+                reject(error);
+            }
         });
     }
 
@@ -115,7 +151,12 @@ class Blockchain {
     getBlockByHash(hash) {
         let self = this;
         return new Promise((resolve, reject) => {
-           
+           try{
+               let block = self.chain.filter(bk => bk.hash === hash);
+                resolve(block);
+           } catch(error){
+               reject(error);
+           }
         });
     }
 
@@ -146,7 +187,18 @@ class Blockchain {
         let self = this;
         let stars = [];
         return new Promise((resolve, reject) => {
-            
+            try{
+                //let test = this.chain.filter(st => st.body);
+                //console.log(self.chain.getBData()//Block.getBData())
+                //let myStars = this.chain.filter(st => st.getBData().then((res) => {console.log(res)}).catch((err) => {console.log(err)})//parseInt(st.getBData().split(':')[0]) === address)
+                let test = this.chain.filter(st => st.getBData().then((res) => {console.log(res)}).catch((err) => {console.log(err)}));
+                //console.log(test);
+                //console.log(this.chain.filter(st => parseInt(((st.getBData().then(res => console.log(res))).toString()).split(':')[0]) == address))//parseInt(st.getBData().split(':')[0]) === address)
+                //parseInt(message.split(':')[0]);
+                 resolve(test); 
+            } catch(error){
+                reject(error);
+            }
         });
     }
 
@@ -167,3 +219,16 @@ class Blockchain {
 }
 
 module.exports.Blockchain = Blockchain;   
+
+bc = new Blockchain();
+// console.log(bc);
+ //bc._addBlock(new BlockClass.Block('omg come on this is;lkj;lkj some bull jkhghgjhgkjhgkjhgkjhgkhg'))
+// console.log(bc);
+//const address1 = '18dBHWF9mnmSkYHw3ApTizXgu13utkZ6S6';
+// bc.requestMessageOwnershipVerification(address1).then(res => console.log(res));
+bc.submitStar('18dBHWF9mnmSkYHw3ApTizXgu13utkZ6S6','18dBHWF9mnmSkYHw3ApTizXgu13utkZ6S6:1559696105:starRegistry','IA1UUp9+NbqMC0TRiMxNRuil6mSGvvngvTeMnykcUT+JWzOQNgI18VijuABNH2tEHSrIqDrD0CzdqKu5ITSw2xY=','star').then(res => console.log(res));
+bc.submitStar('1DeDpPzVjisBvFNLH2nebd2L89pBcBkak9','1DeDpPzVjisBvFNLH2nebd2L89pBcBkak9:1559696105:starRegistry','INUKDBLLwyN9Fx33I7nV4IoAXHolvKm+qaVR13njRFRNJJSmLK0abdXTlMHiL5E2qNQFEKQT/2W16gJsDz3C1Cc=','star').then(res => console.log(res));
+bc.submitStar('18dBHWF9mnmSkYHw3ApTizXgu13utkZ6S6','18dBHWF9mnmSkYHw3ApTizXgu13utkZ6S6:1559696105:starRegistry','IA1UUp9+NbqMC0TRiMxNRuil6mSGvvngvTeMnykcUT+JWzOQNgI18VijuABNH2tEHSrIqDrD0CzdqKu5ITSw2xY=','star').then(res => console.log(res));
+//console.log(bc);
+//bc.getBlockByHash("jhlkjh");
+bc.getStarsByWalletAddress("18dBHWF9mnmSkYHw3ApTizXgu13utkZ6S6");
