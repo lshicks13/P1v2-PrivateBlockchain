@@ -11,7 +11,7 @@
 const SHA256 = require('crypto-js/sha256');
 const BlockClass = require('./block.js');
 const bitcoinMessage = require('bitcoinjs-message');
-const hex2ascii = require('hex2ascii');
+//const hex2ascii = require('hex2ascii');
 
 class Blockchain {
 
@@ -35,8 +35,8 @@ class Blockchain {
      * Passing as a data `{data: 'Genesis Block'}`
      */
     async initializeChain() {
-        if( this.height === -1){
-            let block = new BlockClass.Block({data: 'Genesis Block'});
+        if (this.height === -1) {
+            let block = new BlockClass.Block({ data: 'Genesis Block' });
             await this._addBlock(block);
         }
     }
@@ -71,10 +71,10 @@ class Blockchain {
                 // Block height
                 block.height = this.chain.length;
                 // UTC timestamp
-                block.time = new Date().getTime().toString().slice(0,-3);
+                block.time = new Date().getTime().toString().slice(0, -3);
                 // previous block hash
-                if(this.chain.length>0){
-                block.previousBlockHash = this.chain[this.chain.length-1].hash;
+                if (this.chain.length > 0) {
+                    block.previousBlockHash = this.chain[this.chain.length - 1].hash;
                 }
                 // Block hash with SHA256 using block and converting to a string
                 block.hash = SHA256(JSON.stringify(block)).toString();
@@ -82,7 +82,7 @@ class Blockchain {
                 self.chain.push(block);
                 this.height = self.height + 1;
                 resolve(block);
-            } catch(error) {
+            } catch (error) {
                 reject(error);
             }
         });
@@ -99,7 +99,7 @@ class Blockchain {
      */
     requestMessageOwnershipVerification(address) {
         return new Promise((resolve) => {
-                resolve('<' + address + '>:${' + new Date().getTime().toString().slice(0,-3) + '}:starRegistry');
+            resolve('<' + address + '>:${' + new Date().getTime().toString().slice(0, -3) + '}:starRegistry');
         });
     }
 
@@ -123,20 +123,19 @@ class Blockchain {
     submitStar(address, message, signature, star) {
         let self = this;
         return new Promise(async (resolve, reject) => {
-            try{
+            try {
                 let mTime = parseInt(message.split(':')[1]);
                 let cTime = parseInt(new Date().getTime().toString().slice(0, -3));
-                resolve(this._addBlock(new BlockClass.Block(message)))
-                //console.log(mTime);
-                //console.log(cTime-mTime);
-                /*if (cTime - mTime < 10000){
+                let block = self._addBlock(new BlockClass.Block({ address, signature, message, star }));
+                resolve(block);
+                if (cTime - mTime < 300){
                      let verified = bitcoinMessage.verify(message, address, signature);
                      //console.log(verified)
                      if (verified == true){
-                        resolve(this._addBlock(new BlockClass.Block(message)));
+                        resolve(self._addBlock(new BlockClass.Block({address,signature,message,star})));
                      }
-                }*/
-            } catch(error){
+                }
+            } catch (error) {
                 reject(error);
             }
         });
@@ -151,12 +150,12 @@ class Blockchain {
     getBlockByHash(hash) {
         let self = this;
         return new Promise((resolve, reject) => {
-           try{
-               let block = self.chain.filter(bk => bk.hash === hash);
+            try {
+                let block = self.chain.filter(bk => bk.hash === hash);
                 resolve(block);
-           } catch(error){
-               reject(error);
-           }
+            } catch (error) {
+                reject(error);
+            }
         });
     }
 
@@ -169,7 +168,7 @@ class Blockchain {
         let self = this;
         return new Promise((resolve, reject) => {
             let block = self.chain.filter(p => p.height === height)[0];
-            if(block){
+            if (block) {
                 resolve(block);
             } else {
                 resolve(null);
@@ -183,20 +182,22 @@ class Blockchain {
      * Remember the star should be returned decoded.
      * @param {*} address 
      */
-    getStarsByWalletAddress (address) {
+    getStarsByWalletAddress(address) {
         let self = this;
         let stars = [];
         return new Promise((resolve, reject) => {
-            try{
-                //let test = this.chain.filter(st => st.body);
-                //console.log(self.chain.getBData()//Block.getBData())
-                //let myStars = this.chain.filter(st => st.getBData().then((res) => {console.log(res)}).catch((err) => {console.log(err)})//parseInt(st.getBData().split(':')[0]) === address)
-                let test = this.chain.filter(st => st.getBData().then((res) => {console.log(res)}).catch((err) => {console.log(err)}));
-                //console.log(test);
-                //console.log(this.chain.filter(st => parseInt(((st.getBData().then(res => console.log(res))).toString()).split(':')[0]) == address))//parseInt(st.getBData().split(':')[0]) === address)
-                //parseInt(message.split(':')[0]);
-                 resolve(test); 
-            } catch(error){
+            try {
+                self.chain.filter(st => st.getBData()
+                    .then((res) => {
+                        if (res.address === address) {
+                            let star = res.star;
+                            stars.push(star);
+                            resolve(stars);
+                        }
+                    }).catch((err) => {
+                        console.log(err);
+                    }));
+            } catch (error) {
                 reject(error);
             }
         });
@@ -212,23 +213,23 @@ class Blockchain {
         let self = this;
         let errorLog = [];
         return new Promise(async (resolve, reject) => {
-            
+
         });
     }
 
 }
 
-module.exports.Blockchain = Blockchain;   
+module.exports.Blockchain = Blockchain;
 
 bc = new Blockchain();
 // console.log(bc);
- //bc._addBlock(new BlockClass.Block('omg come on this is;lkj;lkj some bull jkhghgjhgkjhgkjhgkjhgkhg'))
+//bc._addBlock(new BlockClass.Block('omg come on this is;lkj;lkj some bull jkhghgjhgkjhgkjhgkjhgkhg'))
 // console.log(bc);
 //const address1 = '18dBHWF9mnmSkYHw3ApTizXgu13utkZ6S6';
 // bc.requestMessageOwnershipVerification(address1).then(res => console.log(res));
-bc.submitStar('18dBHWF9mnmSkYHw3ApTizXgu13utkZ6S6','18dBHWF9mnmSkYHw3ApTizXgu13utkZ6S6:1559696105:starRegistry','IA1UUp9+NbqMC0TRiMxNRuil6mSGvvngvTeMnykcUT+JWzOQNgI18VijuABNH2tEHSrIqDrD0CzdqKu5ITSw2xY=','star').then(res => console.log(res));
-bc.submitStar('1DeDpPzVjisBvFNLH2nebd2L89pBcBkak9','1DeDpPzVjisBvFNLH2nebd2L89pBcBkak9:1559696105:starRegistry','INUKDBLLwyN9Fx33I7nV4IoAXHolvKm+qaVR13njRFRNJJSmLK0abdXTlMHiL5E2qNQFEKQT/2W16gJsDz3C1Cc=','star').then(res => console.log(res));
-bc.submitStar('18dBHWF9mnmSkYHw3ApTizXgu13utkZ6S6','18dBHWF9mnmSkYHw3ApTizXgu13utkZ6S6:1559696105:starRegistry','IA1UUp9+NbqMC0TRiMxNRuil6mSGvvngvTeMnykcUT+JWzOQNgI18VijuABNH2tEHSrIqDrD0CzdqKu5ITSw2xY=','star').then(res => console.log(res));
+bc.submitStar('18dBHWF9mnmSkYHw3ApTizXgu13utkZ6S6', '18dBHWF9mnmSkYHw3ApTizXgu13utkZ6S6:1559696105:starRegistry', 'IA1UUp9+NbqMC0TRiMxNRuil6mSGvvngvTeMnykcUT+JWzOQNgI18VijuABNH2tEHSrIqDrD0CzdqKu5ITSw2xY=', 'star1').then(res => console.log(res));
+bc.submitStar('1DeDpPzVjisBvFNLH2nebd2L89pBcBkak9', '1DeDpPzVjisBvFNLH2nebd2L89pBcBkak9:1559696105:starRegistry', 'INUKDBLLwyN9Fx33I7nV4IoAXHolvKm+qaVR13njRFRNJJSmLK0abdXTlMHiL5E2qNQFEKQT/2W16gJsDz3C1Cc=', 'star2').then(res => console.log(res));
+bc.submitStar('18dBHWF9mnmSkYHw3ApTizXgu13utkZ6S6', '18dBHWF9mnmSkYHw3ApTizXgu13utkZ6S6:1559696105:starRegistry', 'IA1UUp9+NbqMC0TRiMxNRuil6mSGvvngvTeMnykcUT+JWzOQNgI18VijuABNH2tEHSrIqDrD0CzdqKu5ITSw2xY=', 'star3').then(res => console.log(res));
 //console.log(bc);
 //bc.getBlockByHash("jhlkjh");
-bc.getStarsByWalletAddress("18dBHWF9mnmSkYHw3ApTizXgu13utkZ6S6");
+bc.getStarsByWalletAddress("18dBHWF9mnmSkYHw3ApTizXgu13utkZ6S6").then(res => console.log(res));
