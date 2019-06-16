@@ -39,27 +39,27 @@ class Block {
         let self = this;
         return new Promise((resolve, reject) => {
             // Save in auxiliary variable the current block hash
-            let oldHash = self.hash;
-            //console.log(self);
-            //console.log(oldHash); 
-            //console.log(self.body); 
-            //console.log(hex2ascii(self.body)); 
-            self.hash = '';
-            //console.log(self);     
-            // Recalculate the hash of the Block
-            let validHash = SHA256(JSON.stringify(self)).toString();
-            console.log(oldHash);
-            console.log(validHash);
-            // Comparing if the hashes changed
             try {
-                if (oldHash === self.hash){
+                let oldHash = self.hash;
+                //console.log(self);
+                //console.log('this is the old hash ' + oldHash); 
+                //console.log(self.body); 
+                //console.log(hex2ascii(self.body)); 
+                self.hash = null;
+                //console.log('this should be null ' + self.hash);     
+                // Recalculate the hash of the Block
+                let validHash = SHA256(JSON.stringify(self)).toString();
+                //console.log(oldHash);
+                //console.log(validHash);
+                // Comparing if the hashes changed
+                if (oldHash === validHash){
                 // Returning the Block is valid
                 resolve(true);
-                console.log("Block is valid.");
+                //console.log("Block is valid.");
                 } else {
                 // Returning the Block is not valid
                 resolve(false);
-                console.log("Block is not valid."); 
+                //console.log("Block is not valid."); 
                 }   
             } catch(error) {
                 reject(error);

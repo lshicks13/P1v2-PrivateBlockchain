@@ -11,7 +11,6 @@
 const SHA256 = require('crypto-js/sha256');
 const BlockClass = require('./block.js');
 const bitcoinMessage = require('bitcoinjs-message');
-//const hex2ascii = require('hex2ascii');
 
 class Blockchain {
 
@@ -126,13 +125,14 @@ class Blockchain {
             try {
                 let mTime = parseInt(message.split(':')[1]);
                 let cTime = parseInt(new Date().getTime().toString().slice(0, -3));
-                let block = self._addBlock(new BlockClass.Block({ address, signature, message, star }));
-                resolve(block);
+                //let block = self._addBlock(new BlockClass.Block({ address, signature, message, star }));
+                //resolve(block);
                 if (cTime - mTime < 300){
                      let verified = bitcoinMessage.verify(message, address, signature);
                      //console.log(verified)
                      if (verified == true){
-                        resolve(self._addBlock(new BlockClass.Block({address,signature,message,star})));
+                        let block = self._addBlock(new BlockClass.Block({ address, signature, message, star }));
+                        resolve(block);
                      }
                 }
             } catch (error) {
@@ -213,23 +213,59 @@ class Blockchain {
         let self = this;
         let errorLog = [];
         return new Promise(async (resolve, reject) => {
-
+            try {
+                var chainHeight = await self.getChainHeight();
+                //console.log('this is the chain height outside ' + chainHeight);
+                for (let i = 0; i < chainHeight; i++) {
+                    //console.log('this is the chain height inside ' + chainHeight)
+                    //Validate block
+                    var block = await self.getBlockByHeight(i);
+                    var nextBlock = await self.getBlockByHeight(i + 1);
+                    var blockHash = block.hash;
+                    //console.log('this is the ' + nextBlock)
+                    var prevHash = nextBlock.previousBlockHash;
+                    //console.log(prevHash + ' this is the prev hash');
+                    var vBlock = await block.validate();
+                    //console.log('block validate ' + vBlock)
+                    if(vBlock !== true){
+                        errorLog.push(i);
+                    };
+                    if ((i+1) <= chainHeight){
+                        if (blockHash !== prevHash) {
+                            errorLog.push(i);
+                        };
+                    };
+                };
+                //if (errorLog.length>0) {
+                    errorLog = [ ...new Set(errorLog) ]
+                    resolve('Block errors = ' + errorLog.length + 'Blocks: ' + errorLog);
+                    //console.log('Blocks: ' + errorLog);
+                //} else {
+                    //resolve('No errors detected!');
+                //}
+            } catch (error) {
+                reject(error);
+            }
         });
     }
 
 }
 
+
 module.exports.Blockchain = Blockchain;
 
-bc = new Blockchain();
-// console.log(bc);
-//bc._addBlock(new BlockClass.Block('omg come on this is;lkj;lkj some bull jkhghgjhgkjhgkjhgkjhgkhg'))
-// console.log(bc);
-//const address1 = '18dBHWF9mnmSkYHw3ApTizXgu13utkZ6S6';
-// bc.requestMessageOwnershipVerification(address1).then(res => console.log(res));
-bc.submitStar('18dBHWF9mnmSkYHw3ApTizXgu13utkZ6S6', '18dBHWF9mnmSkYHw3ApTizXgu13utkZ6S6:1559696105:starRegistry', 'IA1UUp9+NbqMC0TRiMxNRuil6mSGvvngvTeMnykcUT+JWzOQNgI18VijuABNH2tEHSrIqDrD0CzdqKu5ITSw2xY=', 'star1').then(res => console.log(res));
-bc.submitStar('1DeDpPzVjisBvFNLH2nebd2L89pBcBkak9', '1DeDpPzVjisBvFNLH2nebd2L89pBcBkak9:1559696105:starRegistry', 'INUKDBLLwyN9Fx33I7nV4IoAXHolvKm+qaVR13njRFRNJJSmLK0abdXTlMHiL5E2qNQFEKQT/2W16gJsDz3C1Cc=', 'star2').then(res => console.log(res));
-bc.submitStar('18dBHWF9mnmSkYHw3ApTizXgu13utkZ6S6', '18dBHWF9mnmSkYHw3ApTizXgu13utkZ6S6:1559696105:starRegistry', 'IA1UUp9+NbqMC0TRiMxNRuil6mSGvvngvTeMnykcUT+JWzOQNgI18VijuABNH2tEHSrIqDrD0CzdqKu5ITSw2xY=', 'star3').then(res => console.log(res));
-//console.log(bc);
-//bc.getBlockByHash("jhlkjh");
-bc.getStarsByWalletAddress("18dBHWF9mnmSkYHw3ApTizXgu13utkZ6S6").then(res => console.log(res));
+/*let bc = new Blockchain();
+
+for(let i = 0; i < 5; i++){
+    bc._addBlock(new BlockClass.Block('Data ' + i));
+};
+
+var block = bc.getBlockByHeight(3);
+blockHash = block.then(res => console.log(res.hash = SHA256(JSON.stringify({data:'block'})).toString()));
+//block.hash = SHA256(JSON.stringify({data:'block'})).toString();
+
+console.log(block);
+bc.validateChain();
+//let block3 = JSON.parse(JSON.stringify(bc.getBlockByHeight(2).then((res) => { console.log(res)})));
+//console.log(block3.hash);
+//console.log(block3.previousBlockHash);SHA256(JSON.stringify(block)).toString();*/
