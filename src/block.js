@@ -108,7 +108,8 @@ class Block {
 module.exports.Block = Block;                    // Exposing the Block class as a module
 
 //b = new Block("some rando data");
-//c = new Block("some more rando data");
+//c = new Block({"message":"random message",
+//"star":{"random":"this is some random "}});
 //c.height = 4;
 //console.log(c);
 //b.validate().then((res) => {console.log(res)}).catch((err) => {console.log(err)});
