@@ -210,7 +210,7 @@ class Blockchain {
         return new Promise(async (resolve, reject) => {
             try {
                 var chainHeight = await self.getChainHeight();
-                for (let i = 0; i < chainHeight; i++) {
+                for (let i = 0; i <= chainHeight; i++) {
                     var block = await self.getBlockByHeight(i);
                     var nextBlock = await self.getBlockByHeight(i + 1);
                     var blockHash = block.hash;
