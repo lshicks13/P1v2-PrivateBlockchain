@@ -211,7 +211,6 @@ class Blockchain {
             try {
                 var chainHeight = await self.getChainHeight();
                 for (let i = 0; i <= chainHeight; i++) {
-                    console.log('this is cH ' + chainHeight)
                     var block = await self.getBlockByHeight(i);
                     var blockHash = block.hash;
                     var nextBlock = await self.getBlockByHeight(i + 1);
@@ -240,8 +239,8 @@ class Blockchain {
 
 module.exports.Blockchain = Blockchain;
 
-let bc = new Blockchain();
+/*let bc = new Blockchain();
 for(let i = 0; i < 5; i++){
     bc._addBlock(new BlockClass.Block('new data' + i))
 }
-bc.validateChain();
+bc.validateChain();*/
