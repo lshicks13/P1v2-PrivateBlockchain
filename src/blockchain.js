@@ -211,18 +211,21 @@ class Blockchain {
             try {
                 var chainHeight = await self.getChainHeight();
                 for (let i = 0; i <= chainHeight; i++) {
+                    console.log('this is cH ' + chainHeight)
                     var block = await self.getBlockByHeight(i);
-                    var nextBlock = await self.getBlockByHeight(i + 1);
                     var blockHash = block.hash;
-                    var prevHash = nextBlock.previousBlockHash;
+                    var nextBlock = await self.getBlockByHeight(i + 1);
                     var vBlock = await block.validate();
-                    if(vBlock !== true){
+                    if(vBlock != true){
                         errorLog.push(i);
                     };
-                    if ((i+1) <= chainHeight){
+                    if(i != chainHeight){
+                        var prevHash = nextBlock.previousBlockHash;  
                         if (blockHash !== prevHash) {
                             errorLog.push(i);
                         };
+                    } else {
+                        console.log('End of chain')
                     };
                 };
                 errorLog = [ ...new Set(errorLog) ];
@@ -236,3 +239,9 @@ class Blockchain {
 }
 
 module.exports.Blockchain = Blockchain;
+
+let bc = new Blockchain();
+for(let i = 0; i < 5; i++){
+    bc._addBlock(new BlockClass.Block('new data' + i))
+}
+bc.validateChain();
